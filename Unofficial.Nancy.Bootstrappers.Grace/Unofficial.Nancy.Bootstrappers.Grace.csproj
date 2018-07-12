@@ -9,6 +9,12 @@
     <Company>Sherzod Mutalov</Company>
     <Product>Unofficial.Nancy.Bootstrappers.Grace</Product>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Nancy bootstrapper for the Grace container</Description>
+    <PackageProjectUrl>https://github.com/shmutalov/Unofficial.Nancy.Bootstrappers.Grace</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/shmutalov/Unofficial.Nancy.Bootstrappers.Grace</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>nancyfx, grace, bootstrapper</PackageTags>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/shmutalov/Unofficial.Nancy.Bootstrappers.Grace/master/LICENSE-APACHE</PackageLicenseUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
