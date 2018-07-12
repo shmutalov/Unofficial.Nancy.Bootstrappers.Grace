@@ -17,6 +17,25 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
     public abstract class GraceNancyBootstrapper : NancyBootstrapperWithRequestContainerBase<IInjectionScope>
     {
         /// <summary>
+        /// Gets the application level container
+        /// </summary>
+        /// <returns>Container instance</returns>
+        protected override IInjectionScope GetApplicationContainer()
+        {
+            return new DependencyInjectionContainer();
+        }
+
+        /// <summary>
+        /// Creates a per request child/nested container
+        /// </summary>
+        /// <param name="context">The context</param>
+        /// <returns>Request container instance</returns>
+        protected override IInjectionScope CreateRequestContainer(NancyContext context)
+        {
+            return ApplicationContainer.CreateChildScope(); ;
+        }
+
+        /// <summary>
         /// Gets the diagnostics for initialisation
         /// </summary>
         /// <returns>An <see cref="IDiagnostics"/> implementation</returns>
@@ -32,19 +51,6 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         protected override IEnumerable<IApplicationStartup> GetApplicationStartupTasks()
         {
             return ApplicationContainer.LocateAll<IApplicationStartup>();
-        }
-
-        /// <summary>
-        /// Gets all registered request startup tasks
-        /// </summary>
-        /// <returns>An <see cref="IEnumerable{T}"/> instance containing <see cref="IRequestStartup"/> instances.</returns>
-        protected override IEnumerable<IRequestStartup> RegisterAndGetRequestStartupTasks(
-            IInjectionScope container, 
-            Type[] requestStartupTypes)
-        {
-            return requestStartupTypes
-                .Select(container.Locate)
-                .Cast<IRequestStartup>();
         }
 
         /// <summary>
@@ -85,6 +91,42 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         }
 
         /// <summary>
+        /// Retrieve all module instances from the container
+        /// </summary>
+        /// <param name="container">Container to use</param>
+        /// <returns>Collection of <see cref="INancyModule"/> instances</returns>
+        protected override IEnumerable<INancyModule> GetAllModules(IInjectionScope container)
+        {
+            return container.LocateAll<INancyModule>();
+        }
+
+        /// <summary>
+        /// Retreive a specific module instance from the container
+        /// </summary>
+        /// <param name="container">Container to use</param>
+        /// <param name="moduleType">Type of the module</param>
+        /// <returns>A <see cref="INancyModule"/> instance</returns>
+        protected override INancyModule GetModule(IInjectionScope container, Type moduleType)
+        {
+            container.Configure(registry => registry.Export(moduleType));
+
+            return (INancyModule)container.Locate(moduleType);
+        }
+
+        /// <summary>
+        /// Gets all registered request startup tasks
+        /// </summary>
+        /// <returns>An <see cref="IEnumerable{T}"/> instance containing <see cref="IRequestStartup"/> instances.</returns>
+        protected override IEnumerable<IRequestStartup> RegisterAndGetRequestStartupTasks(
+            IInjectionScope container,
+            Type[] requestStartupTypes)
+        {
+            return requestStartupTypes
+                .Select(container.Locate)
+                .Cast<IRequestStartup>();
+        }
+
+        /// <summary>
         /// Registers an <see cref="INancyEnvironment"/> instance in the container.
         /// </summary>
         /// <param name="container">The container to register into.</param>
@@ -97,15 +139,6 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         }
 
         /// <summary>
-        /// Gets the application level container
-        /// </summary>
-        /// <returns>Container instance</returns>
-        protected override IInjectionScope GetApplicationContainer()
-        {
-            return new DependencyInjectionContainer();
-        }
-
-        /// <summary>
         /// Register the bootstrapper's implemented types into the container.
         /// This is necessary so a user can pass in a populated container but not have
         /// to take the responsibility of registering things like <see cref="INancyModuleCatalog"/> manually.
@@ -115,7 +148,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         {
             applicationContainer.Configure(registry =>
             {
-                registry.ExportInstance(this).As<INancyModuleCatalog>().Lifestyle.Singleton();
+                registry.ExportInstance(this).As<INancyModuleCatalog>();
                 registry.Export<DefaultFileSystemReader>().As<IFileSystemReader>().Lifestyle.Singleton();
             });
         }
@@ -189,16 +222,6 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         }
 
         /// <summary>
-        /// Creates a per request child/nested container
-        /// </summary>
-        /// <param name="context">The context</param>
-        /// <returns>Request container instance</returns>
-        protected override IInjectionScope CreateRequestContainer(NancyContext context)
-        {
-            return ApplicationContainer.CreateChildScope();
-        }
-
-        /// <summary>
         /// Register the given module types into the request container
         /// </summary>
         /// <param name="container">Container to register into</param>
@@ -211,30 +234,9 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
             {
                 foreach (var registrationType in moduleRegistrationTypes)
                 {
-                    registry.Export(registrationType.ModuleType).As(typeof(INancyModule)).Lifestyle.Singleton();
+                    registry.Export(registrationType.ModuleType).As(typeof(INancyModule));
                 }
             });
-        }
-
-        /// <summary>
-        /// Retrieve all module instances from the container
-        /// </summary>
-        /// <param name="container">Container to use</param>
-        /// <returns>Collection of <see cref="INancyModule"/> instances</returns>
-        protected override IEnumerable<INancyModule> GetAllModules(IInjectionScope container)
-        {
-            return container.LocateAll<INancyModule>();
-        }
-
-        /// <summary>
-        /// Retreive a specific module instance from the container
-        /// </summary>
-        /// <param name="container">Container to use</param>
-        /// <param name="moduleType">Type of the module</param>
-        /// <returns>A <see cref="INancyModule"/> instance</returns>
-        protected override INancyModule GetModule(IInjectionScope container, Type moduleType)
-        {
-            return (INancyModule)container.Locate(moduleType);
         }
 
         private static void RegisterType(
@@ -247,8 +249,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
             {
                 case Lifetime.Transient:
                     registry.Export(implementationType)
-                        .As(registrationType)
-                        .Lifestyle.SingletonPerObjectGraph();
+                        .As(registrationType);
                     break;
                 case Lifetime.Singleton:
                     registry.Export(implementationType)
