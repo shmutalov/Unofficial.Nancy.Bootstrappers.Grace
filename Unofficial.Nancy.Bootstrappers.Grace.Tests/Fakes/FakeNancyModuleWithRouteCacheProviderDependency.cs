@@ -7,13 +7,13 @@ namespace Unofficial.Nancy.Bootstrappers.Grace.Tests.Fakes
     /// NOTE: Coupling with IRouteCacheProvider can cause cyclic dependencies (cannot be resolved by Grace)
     /// SEE: https://github.com/ipjohnson/Grace/issues/180
     /// </summary>
-    //public class FakeNancyModuleWithRouteCacheProviderDependency : NancyModule
-    //{
-    //    public IRouteCacheProvider RouteCacheProvider { get; private set; }
+    public class FakeNancyModuleWithRouteCacheProviderDependency : NancyModule
+    {
+        public IRouteCacheProvider RouteCacheProvider { get; private set; }
 
-    //    public FakeNancyModuleWithRouteCacheProviderDependency(IRouteCacheProvider routeCacheProvider)
-    //    {
-    //        RouteCacheProvider = routeCacheProvider;
-    //    }
-    //}
+        public FakeNancyModuleWithRouteCacheProviderDependency(IRouteCacheProvider routeCacheProvider)
+        {
+            RouteCacheProvider = routeCacheProvider;
+        }
+    }
 }

@@ -103,20 +103,20 @@ namespace Unofficial.Nancy.Bootstrappers.Grace.Tests
             Assert.NotSame(result.FooDependency, result2.FooDependency);
         }
 
-        //[Fact]
-        //public void Should_resolve_module_with_dependency_on_RouteCacheFactory()
-        //{
-        //    // Given
-        //    bootstrapper.GetEngine();
-        //    var context = new NancyContext();
+        [Fact]
+        public void Should_resolve_module_with_dependency_on_RouteCacheFactory()
+        {
+            // Given
+            bootstrapper.GetEngine();
+            var context = new NancyContext();
 
-        //    // When
-        //    var result = bootstrapper.GetModule(typeof(FakeNancyModuleWithRouteCacheProviderDependency), context) as FakeNancyModuleWithRouteCacheProviderDependency;
+            // When
+            var result = bootstrapper.GetModule(typeof(FakeNancyModuleWithRouteCacheProviderDependency), context) as FakeNancyModuleWithRouteCacheProviderDependency;
 
-        //    // Then
-        //    Assert.NotNull(result.RouteCacheProvider);
-        //    Assert.IsType<DefaultRouteCacheProvider>(result.RouteCacheProvider);
-        //}
+            // Then
+            Assert.NotNull(result.RouteCacheProvider);
+            Assert.IsType<DefaultRouteCacheProvider>(result.RouteCacheProvider);
+        }
 
         [Fact]
         public void Should_resolve_IRequestStartup_types()

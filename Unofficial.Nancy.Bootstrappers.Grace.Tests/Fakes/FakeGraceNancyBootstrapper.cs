@@ -1,5 +1,4 @@
 using System;
-using Grace.DependencyInjection;
 using Nancy;
 using Nancy.Bootstrapper;
 
@@ -28,28 +27,27 @@ namespace Unofficial.Nancy.Bootstrappers.Grace.Tests.Fakes
 
         }
 
-        public IInjectionScope Container
+        public IGraceWrapper Container
         {
             get { return ApplicationContainer; }
         }
 
-        protected override void ConfigureApplicationContainer(IInjectionScope existingContainer)
+        protected override void ConfigureApplicationContainer(IGraceWrapper existingContainer)
         {
             ApplicationContainerConfigured = true;
             base.ConfigureApplicationContainer(existingContainer);
         }
 
-        protected override void ConfigureRequestContainer(IInjectionScope container, NancyContext context)
+        protected override void ConfigureRequestContainer(IGraceWrapper container, NancyContext context)
         {
-            base.ConfigureRequestContainer(container, context);
-
-            RequestContainerConfigured = true;
-
             container.Configure(registry =>
             {
                 registry.Export<Foo>().As<IFoo>();
                 registry.Export<Dependency>().As<IDependency>();
             });
+
+            RequestContainerConfigured = true;
+            base.ConfigureRequestContainer(container, context);
         }
     }
 

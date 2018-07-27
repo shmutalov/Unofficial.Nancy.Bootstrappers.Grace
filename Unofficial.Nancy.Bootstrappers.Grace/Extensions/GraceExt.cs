@@ -8,5 +8,6 @@ namespace Unofficial.Nancy.Bootstrappers.Grace.Extensions
     internal static class GraceExt
     {
         internal static bool IsChild(this IInjectionScope container) => container.Parent != null;
+        internal static bool IsChild(this IGraceWrapper container) => container.Parent != null;
     }
 }

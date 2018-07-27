@@ -1,12 +1,11 @@
 #if !__MonoCS__ 
 
-using Grace.DependencyInjection;
 using Nancy.Bootstrapper;
 using Unofficial.Nancy.Bootstrappers.Grace.Tests.Fakes;
 
 namespace Unofficial.Nancy.Bootstrappers.Grace.Tests
 {
-    public class BootstrapperBaseFixture : BootstrapperBaseFixtureBase<IInjectionScope>
+    public class BootstrapperBaseFixture : BootstrapperBaseFixtureBase<IGraceWrapper>
     {
         private readonly GraceNancyBootstrapper bootstrapper;
 
@@ -15,7 +14,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace.Tests
             bootstrapper = new FakeGraceNancyBootstrapper(Configuration);
         }
 
-        protected override NancyBootstrapperBase<IInjectionScope> Bootstrapper
+        protected override NancyBootstrapperBase<IGraceWrapper> Bootstrapper
         {
             get { return bootstrapper; }
         }

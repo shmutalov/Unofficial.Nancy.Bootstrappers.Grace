@@ -14,15 +14,15 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
     /// <summary>
     /// Nancy bootstrapper for the Grace container.
     /// </summary>
-    public abstract class GraceNancyBootstrapper : NancyBootstrapperWithRequestContainerBase<IInjectionScope>
+    public abstract class GraceNancyBootstrapper : NancyBootstrapperWithRequestContainerBase<IGraceWrapper>
     {
         /// <summary>
         /// Gets the application level container
         /// </summary>
         /// <returns>Container instance</returns>
-        protected override IInjectionScope GetApplicationContainer()
+        protected override IGraceWrapper GetApplicationContainer()
         {
-            return new DependencyInjectionContainer();
+            return new GraceWrapper(new DependencyInjectionContainer());
         }
 
         /// <summary>
@@ -30,9 +30,9 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// </summary>
         /// <param name="context">The context</param>
         /// <returns>Request container instance</returns>
-        protected override IInjectionScope CreateRequestContainer(NancyContext context)
+        protected override IGraceWrapper CreateRequestContainer(NancyContext context)
         {
-            return ApplicationContainer.CreateChildScope(); ;
+            return ApplicationContainer.CreateScope();
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// </summary>
         /// <param name="container">Container to use</param>
         /// <returns>Collection of <see cref="INancyModule"/> instances</returns>
-        protected override IEnumerable<INancyModule> GetAllModules(IInjectionScope container)
+        protected override IEnumerable<INancyModule> GetAllModules(IGraceWrapper container)
         {
             return container.LocateAll<INancyModule>();
         }
@@ -106,9 +106,9 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <param name="container">Container to use</param>
         /// <param name="moduleType">Type of the module</param>
         /// <returns>A <see cref="INancyModule"/> instance</returns>
-        protected override INancyModule GetModule(IInjectionScope container, Type moduleType)
+        protected override INancyModule GetModule(IGraceWrapper container, Type moduleType)
         {
-            container.Configure(registry => registry.Export(moduleType));
+            // container.Configure(registry => registry.Export(moduleType));
 
             return (INancyModule)container.Locate(moduleType);
         }
@@ -118,7 +118,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// </summary>
         /// <returns>An <see cref="IEnumerable{T}"/> instance containing <see cref="IRequestStartup"/> instances.</returns>
         protected override IEnumerable<IRequestStartup> RegisterAndGetRequestStartupTasks(
-            IInjectionScope container,
+            IGraceWrapper container,
             Type[] requestStartupTypes)
         {
             return requestStartupTypes
@@ -132,7 +132,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <param name="container">The container to register into.</param>
         /// <param name="environment">The <see cref="INancyEnvironment"/> instance to register.</param>
         protected override void RegisterNancyEnvironment(
-            IInjectionScope container, 
+            IGraceWrapper container, 
             INancyEnvironment environment)
         {
             container.Configure(registry => registry.ExportInstance(environment));
@@ -144,7 +144,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// to take the responsibility of registering things like <see cref="INancyModuleCatalog"/> manually.
         /// </summary>
         /// <param name="applicationContainer">Application container to register into</param>
-        protected override void RegisterBootstrapperTypes(IInjectionScope applicationContainer)
+        protected override void RegisterBootstrapperTypes(IGraceWrapper applicationContainer)
         {
             applicationContainer.Configure(registry =>
             {
@@ -159,7 +159,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <param name="container">Container to register into</param>
         /// <param name="typeRegistrations">Type registrations to register</param>
         protected override void RegisterTypes(
-            IInjectionScope container, 
+            IGraceWrapper container, 
             IEnumerable<TypeRegistration> typeRegistrations)
         {
             container.Configure(registry =>
@@ -169,7 +169,8 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
                     RegisterType(
                         typeRegistration.RegistrationType,
                         typeRegistration.ImplementationType,
-                        container.IsChild() ? Lifetime.PerRequest : typeRegistration.Lifetime,
+                        // container.IsChild() ? Lifetime.PerRequest : typeRegistration.Lifetime,
+                        typeRegistration.Lifetime,
                         registry);
                 }
             });
@@ -182,7 +183,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <param name="container">Container to register into</param>
         /// <param name="collectionTypeRegistrationsn">Collection type registrations to register</param>
         protected override void RegisterCollectionTypes(
-            IInjectionScope container,
+            IGraceWrapper container,
             IEnumerable<CollectionTypeRegistration> collectionTypeRegistrationsn)
         {
             container.Configure(registry =>
@@ -194,7 +195,8 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
                         RegisterType(
                             collectionTypeRegistration.RegistrationType,
                             implementationType,
-                            container.IsChild() ? Lifetime.PerRequest : collectionTypeRegistration.Lifetime,
+                            //container.IsChild() ? Lifetime.PerRequest : collectionTypeRegistration.Lifetime,
+                            collectionTypeRegistration.Lifetime,
                             registry);
                     }
                 }
@@ -207,7 +209,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <param name="container">Container to register into</param>
         /// <param name="instanceRegistrations">Instance registration types</param>
         protected override void RegisterInstances(
-            IInjectionScope container, 
+            IGraceWrapper container, 
             IEnumerable<InstanceRegistration> instanceRegistrations)
         {
             container.Configure(registry =>
@@ -227,7 +229,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <param name="container">Container to register into</param>
         /// <param name="moduleRegistrationTypes"><see cref="INancyModule"/> types</param>
         protected override void RegisterRequestContainerModules(
-            IInjectionScope container,
+            IGraceWrapper container,
             IEnumerable<ModuleRegistration> moduleRegistrationTypes)
         {
             container.Configure(registry =>

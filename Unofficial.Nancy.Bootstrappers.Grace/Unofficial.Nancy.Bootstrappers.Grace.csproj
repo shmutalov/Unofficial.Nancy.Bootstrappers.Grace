@@ -5,6 +5,7 @@
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <RootNamespace>Unofficial.Nancy.Bootstrappers.Grace</RootNamespace>
     <PackageId>Unofficial.Nancy.Bootstrappers.Grace</PackageId>
+    <Version>1.1.0</Version>
     <Authors>Sherzod Mutalov</Authors>
     <Company>Sherzod Mutalov</Company>
     <Product>Unofficial.Nancy.Bootstrappers.Grace</Product>
