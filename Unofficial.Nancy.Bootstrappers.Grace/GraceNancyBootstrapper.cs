@@ -32,7 +32,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <returns>Request container instance</returns>
         protected override IInjectionScope CreateRequestContainer(NancyContext context)
         {
-            return ApplicationContainer.CreateChildScope(); ;
+            return ApplicationContainer.CreateChildScope();
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         }
 
         /// <summary>
-        /// Gets the <see cref="INancyEnvironmentConfigurator"/> used by th.
+        /// Gets the <see cref="INancyEnvironmentConfigurator"/> used by the application.
         /// </summary>
         /// <returns>An <see cref="INancyEnvironmentConfigurator"/> instance.</returns>
         protected override INancyEnvironmentConfigurator GetEnvironmentConfigurator()
@@ -108,7 +108,14 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// <returns>A <see cref="INancyModule"/> instance</returns>
         protected override INancyModule GetModule(IInjectionScope container, Type moduleType)
         {
-            container.Configure(registry => registry.Export(moduleType));
+            // Nancy only calls RegisterRequestContainerModules on the GetAllModules path,
+            // so the module may not be exported in the request scope yet. The export must
+            // live in the request scope, otherwise its activation strategy cannot see
+            // per-request registrations (e.g. from ConfigureRequestContainer).
+            if (container.StrategyCollectionContainer.GetActivationStrategyCollection(moduleType) == null)
+            {
+                container.Configure(registry => registry.Export(moduleType));
+            }
 
             return (INancyModule)container.Locate(moduleType);
         }
@@ -123,7 +130,8 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         {
             return requestStartupTypes
                 .Select(container.Locate)
-                .Cast<IRequestStartup>();
+                .Cast<IRequestStartup>()
+                .ToArray();
         }
 
         /// <summary>
@@ -180,14 +188,14 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
         /// by IEnumerable{Type} constructor dependencies.
         /// </summary>
         /// <param name="container">Container to register into</param>
-        /// <param name="collectionTypeRegistrationsn">Collection type registrations to register</param>
+        /// <param name="collectionTypeRegistrations">Collection type registrations to register</param>
         protected override void RegisterCollectionTypes(
             IInjectionScope container,
-            IEnumerable<CollectionTypeRegistration> collectionTypeRegistrationsn)
+            IEnumerable<CollectionTypeRegistration> collectionTypeRegistrations)
         {
             container.Configure(registry =>
             {
-                foreach (var collectionTypeRegistration in collectionTypeRegistrationsn)
+                foreach (var collectionTypeRegistration in collectionTypeRegistrations)
                 {
                     foreach (var implementationType in collectionTypeRegistration.ImplementationTypes)
                     {
@@ -215,8 +223,7 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
                 foreach (var instanceRegistration in instanceRegistrations)
                 {
                     registry.ExportInstance(instanceRegistration.Implementation)
-                        .As(instanceRegistration.RegistrationType)
-                        .Lifestyle.Singleton();
+                        .As(instanceRegistration.RegistrationType);
                 }
             });
         }
@@ -234,7 +241,9 @@ namespace Unofficial.Nancy.Bootstrappers.Grace
             {
                 foreach (var registrationType in moduleRegistrationTypes)
                 {
-                    registry.Export(registrationType.ModuleType).As(typeof(INancyModule));
+                    registry.Export(registrationType.ModuleType)
+                        .As(registrationType.ModuleType)
+                        .As(typeof(INancyModule));
                 }
             });
         }
